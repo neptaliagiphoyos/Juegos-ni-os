@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Biblioteca de Juegos · Miguel Agip</title>
-<meta name="description" content="Juegos para niños creados por Miguel Agip. Juégalos en línea o descárgalos.">
-<meta property="og:title" content="Biblioteca de Juegos · Miguel Agip">
+<title>Biblioteca de Juegos · Neptalí Agip</title>
+<meta name="description" content="Juegos para niños creados por Neptalí Agip. Juégalos en línea o descárgalos.">
+<meta property="og:title" content="Biblioteca de Juegos · Neptalí Agip">
 <meta property="og:description" content="Juegos para niños: juégalos en línea o descárgalos. ¡Envía tu idea y la volvemos realidad!">
 <style>
 :root{--bg:#1a1030;--panel:#251a40;--line:#3b2d5e;--ink:#fff7fb;--mute:#c9bcdf;--pink:#ff5fa8;--pink2:#ffb3d6;--sun:#ffd166;--radius:18px}
@@ -98,8 +98,8 @@ footer b{color:var(--ink)}
     <p class="lead">Juegos creados con cariño para jugar en familia. Mira de qué trata cada uno, juégalo en línea o descárgalo para jugar sin internet.</p>
 
     <div class="author">
-      <div class="seal">MA</div>
-      <div><b>Creado por Miguel Agip</b><span>Lima, Perú</span></div>
+      <div class="seal">NA</div>
+      <div><b>Creado por Neptalí Agip</b><span>Lima, Perú</span></div>
     </div>
 
     <div class="promise">
@@ -129,9 +129,9 @@ footer b{color:var(--ink)}
 
 <footer>
   <div class="wrap">
-    <b>Biblioteca de Juegos · una creación de Miguel Agip</b><br>
+    <b>Biblioteca de Juegos · una creación de Neptalí Agip</b><br>
     Juegos de libre uso familiar y educativo. Si lo compartes, menciona al autor.<br>
-    © <span id="yr"></span> Miguel Agip · neptaliagiphoyos@gmail.com
+    © <span id="yr"></span> Neptalí Agip · neptaliagiphoyos@gmail.com
   </div>
 </footer>
 
@@ -188,7 +188,7 @@ render();
 Promise.all(GAMES.filter(g => !g.ext).map(g => fetch(g.f, {method:"HEAD", cache:"no-store"}).then(r => { if (r.ok) ready.add(g.f); }).catch(() => {})))
   .then(() => { $("#nReady").textContent = ready.size + GAMES.filter(g => g.ext).length; render(); });
 
-const msg = encodeURIComponent("Hola Miguel, le escribo desde la Biblioteca de Juegos: ");
+const msg = encodeURIComponent("Hola Neptalí, le escribo desde la Biblioteca de Juegos: ");
 $("#wa").href = "https://wa.me/51975525627?text=" + msg;
 $("#mail").href = "mailto:neptaliagiphoyos@gmail.com?subject=" + encodeURIComponent("Comentario / idea – Biblioteca de Juegos") + "&body=" + msg;
 const sheet = $("#sheet");
