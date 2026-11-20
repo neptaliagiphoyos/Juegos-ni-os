@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LEGO en familia · Neptalí Agip</title>
+<meta name="description" content="Guía para armar modelos LEGO en familia y contador de piezas. Versión para celular y para computadora.">
+<style>
+:root{--bg:#1a1030;--panel:#251a40;--line:#3b2d5e;--ink:#fff7fb;--mute:#c9bcdf;--red:#e8382e;--yel:#ffd166;--papa:#2f6fde;--hijo:#f28c28;--hija:#ec6fa9;--radius:18px}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+.topnav{display:flex;gap:8px;flex-wrap:wrap;padding:14px 0 0}
+.topnav a{text-decoration:none;font-size:13px;font-weight:600;border:1px solid var(--line);border-radius:99px;padding:8px 14px;background:rgba(37,26,64,.7)}
+header{padding:8px 0 28px;border-bottom:1px solid var(--line);background:radial-gradient(800px 320px at 85% -10%,rgba(232,56,46,.35),transparent 60%),linear-gradient(180deg,#24124a,#1a1030)}
+h1{font-family:"Trebuchet MS",system-ui,sans-serif;font-weight:800;font-size:clamp(34px,8vw,56px);line-height:1.05;margin:22px 0 10px}
+h1 em{font-style:normal;color:var(--yel)}
+.lead{color:#eadff5;max-width:640px;margin:0}
+.fam{display:flex;gap:14px;margin-top:16px;font-size:14px;font-weight:700}
+.fam span{display:flex;align-items:center;gap:6px}.fam i{width:14px;height:14px;border-radius:50%}
+.tip{margin:22px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(37,26,64,.75);font-size:14px;color:#eadff5}
+.tip b{color:var(--yel)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;margin:28px 0}
+.card{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden}
+.jacket{height:150px;position:relative;display:flex;align-items:flex-end;padding:16px;background:linear-gradient(135deg,var(--c1),var(--c2))}
+.jacket svg{position:absolute;right:14px;top:14px;width:110px;height:auto;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
+.jacket h2{position:relative;margin:0;font-family:"Trebuchet MS",system-ui,sans-serif;font-size:24px;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+.body{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1}
+.body p{margin:0;color:#eadff5;font-size:15px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto}
+.btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:64px;text-decoration:none;border-radius:14px;border:1px solid var(--line);background:#30234f;font-weight:800;font-size:15px;text-align:center}
+.btn small{font-weight:500;font-size:12px;color:var(--mute)}
+.btn.rec{background:var(--red);border-color:var(--red)}
+.btn.rec small{color:#ffe3e0}
+.btn:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mute);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav class="topnav"><a href="../">← Biblioteca de Juegos</a></nav>
+    <h1>LEGO en <em>familia</em></h1>
+    <p class="lead">Para armar juntos con las piezas que tenemos en casa: papá, el hijo y la hija, cada uno con su trabajo.</p>
+    <div class="fam"><span><i style="background:var(--papa)"></i>Papá</span><span><i style="background:var(--hijo)"></i>Hijo (10)</span><span><i style="background:var(--hija)"></i>Hija (4)</span></div>
+    <p class="tip" id="tip">Cada página tiene <b>dos versiones</b>: una para el celular y otra para la computadora.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="grid">
+    <article class="card" style="--c1:#d8342b;--c2:#f5c431">
+      <div class="jacket">
+        <svg viewBox="0 0 110 70" aria-hidden="true"><rect x="10" y="30" width="90" height="10" rx="2" fill="#a3abb5" stroke="#6e7681" stroke-width="2"/><rect x="10" y="12" width="44" height="18" rx="2" fill="#2f6fde" stroke="#1d4ea3" stroke-width="2"/><rect x="56" y="18" width="44" height="12" rx="2" fill="#fff" stroke="#9a9d96" stroke-width="2"/><circle cx="30" cy="52" r="12" fill="#3a3d42"/><circle cx="30" cy="52" r="4" fill="#c9ced6"/><circle cx="80" cy="52" r="12" fill="#3a3d42"/><circle cx="80" cy="52" r="4" fill="#c9ced6"/></svg>
+        <h2>Armamos juntos</h2>
+      </div>
+      <div class="body">
+        <p>5 modelos fáciles paso a paso: carro, casa, avión, torre y barco. Con dibujos, lista de piezas y un reto para los tres.</p>
+        <div class="btns">
+          <a class="btn" data-v="celular" href="armamos-celular.html">📱 Celular<small>pantalla chica</small></a>
+          <a class="btn" data-v="pc" href="armamos-pc.html">💻 Computadora<small>pantalla grande</small></a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card" style="--c1:#0055bf;--c2:#5a93db">
+      <div class="jacket">
+        <svg viewBox="0 0 110 70" aria-hidden="true"><rect x="8" y="22" width="56" height="30" rx="3" fill="#c91a09" stroke="#7a0f05" stroke-width="2"/><g fill="#e0574c" stroke="#7a0f05" stroke-width="1.5"><circle cx="20" cy="31" r="5"/><circle cx="36" cy="31" r="5"/><circle cx="52" cy="31" r="5"/><circle cx="20" cy="44" r="5"/><circle cx="36" cy="44" r="5"/><circle cx="52" cy="44" r="5"/></g><rect x="72" y="14" width="30" height="20" rx="6" fill="#fff"/><text x="87" y="29" font-size="14" font-weight="800" text-anchor="middle" fill="#0055bf">+1</text><rect x="72" y="40" width="30" height="20" rx="6" fill="#f2cd37"/><text x="87" y="55" font-size="13" font-weight="800" text-anchor="middle" fill="#05131d">+10</text></svg>
+        <h2>Inventario de piezas</h2>
+      </div>
+      <div class="body">
+        <p>Cuenten sus piezas por tipo y color, reconózcanlas con una foto y expórtenlas a Rebrickable para ver qué más pueden armar.</p>
+        <div class="btns">
+          <a class="btn" data-v="celular" href="inventario-celular.html">📱 Celular<small>pantalla chica</small></a>
+          <a class="btn" data-v="pc" href="inventario-pc.html">💻 Computadora<small>pantalla grande</small></a>
+        </div>
+      </div>
+    </article>
+  </div>
+  <p style="color:var(--mute);font-size:14px">Lo que anoten (piezas contadas, modelos armados) se guarda en el aparato donde lo usan. El celular y la computadora no comparten esos datos.</p>
+</main>
+
+<footer><div class="wrap">LEGO en familia · una creación de Neptalí Agip. LEGO es una marca de The LEGO Group; esta página no está asociada a ella.</div></footer>
+
+<script>
+// Resalta la versión que conviene según el tamaño de la pantalla
+const v = (window.matchMedia("(max-width: 820px)").matches || /Android|iPhone|iPad/i.test(navigator.userAgent)) ? "celular" : "pc";
+document.querySelectorAll('.btn[data-v="' + v + '"]').forEach(a => a.classList.add("rec"));
+document.getElementById("tip").innerHTML += v === "celular" ? " Estás en un <b>celular</b>: te marcamos esa versión en rojo." : " Estás en una <b>computadora</b>: te marcamos esa versión en rojo.";
+</script>
+</body>
+</html>

@@ -157,7 +157,11 @@ const GAMES = [
   {t:"El Sastre de Grid · RPG", cat:"Rol 16 bits", g:"🧵", c:["#1b2a4a","#e07a3a"],
    d:"Videojuego de rol de 16 bits basado en la novela: recorre Barrios Altos, el Mercado de las Sombras y Barranco con Damián, «el Sastre».",
    l:"Jóvenes y adultos lectores de la saga. Funciona en celular y computadora.",
-   tags:["RPG","Basado en la novela","Celular y PC"], f:"https://neptaliagiphoyos.github.io/El-Sastre-del-Grid/", ext:true}
+   tags:["RPG","Basado en la novela","Celular y PC"], f:"https://neptaliagiphoyos.github.io/El-Sastre-del-Grid/", ext:true},
+  {t:"LEGO en familia", cat:"Construir", g:"🧱", c:["#d8342b","#f5c431"],
+   d:"Guía para armar carro, casa, avión, torre y barco con las piezas de casa, y un contador de piezas LEGO.",
+   l:"Papá, hijo e hija juntos: cada uno tiene su trabajo en cada modelo. Versión para celular y para computadora.",
+   tags:["Familia","Celular","Computadora"], f:"lego/index.html"}
 ];
 
 const $ = s => document.querySelector(s);
@@ -177,7 +181,7 @@ function render(){
         ${on ? "" : `<span class="soon">⏳ Muy pronto en la biblioteca</span>`}
         <div class="ver"><span>Juego</span>
           <a class="btn primary" href="${g.f}" target="_blank" rel="noopener" aria-disabled="${!on}">▶ Jugar</a>
-          ${g.ext ? "" : `<a class="btn" href="${g.f}" download aria-disabled="${!on}">⬇</a>`}</div>
+          ${g.ext || g.f.includes("/") ? "" : `<a class="btn" href="${g.f}" download aria-disabled="${!on}">⬇</a>`}</div>
       </div></article>`;
   }).join("") + `<div class="ghost"><span class="big">🎁</span><b>Próximo juego…</b>
       <span>Se vienen más juegos. ¿Cuál quieres que sea?</span>
