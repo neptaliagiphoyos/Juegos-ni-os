@@ -60,6 +60,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mute);fo
         <div class="btns">
           <a class="btn" data-v="celular" href="armamos-celular.html">📱 Celular<small>pantalla chica</small></a>
           <a class="btn" data-v="pc" href="armamos-pc.html">💻 Computadora<small>pantalla grande</small></a>
+          <a class="btn" data-v="tv" href="armamos-tv.html">📺 TV<small>control remoto</small></a>
         </div>
       </div>
     </article>
@@ -74,6 +75,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mute);fo
         <div class="btns">
           <a class="btn" data-v="celular" href="inventario-celular.html?v=20261121e">📱 Celular<small>pantalla chica</small></a>
           <a class="btn" data-v="pc" href="inventario-pc.html?v=20261121e">💻 Computadora<small>pantalla grande</small></a>
+          <a class="btn" data-v="tv" href="inventario-tv.html">📺 TV<small>control remoto</small></a>
         </div>
       </div>
     </article>
@@ -103,6 +105,69 @@ document.getElementById("tip").innerHTML += v === "celular" ? " Estás en un <b>
   }
   setTimeout(function(){a.classList.add('mini')},3500);
 }catch(e){}})();
+</script>
+<script>/* Navegacion con control remoto (TV) - ES5 */
+(function(){
+  if (window.__tvnav) return; window.__tvnav = 1;
+  var GAME = !!window.__tvgame;
+  var st = document.createElement('style');
+  st.textContent = '.tvfoco{outline:6px solid #ffd400 !important;outline-offset:3px !important;box-shadow:0 0 0 10px rgba(0,0,0,.55) !important;position:relative;z-index:5}';
+  (document.head||document.documentElement).appendChild(st);
+  var SEL = 'a[href],button,input,select,textarea,[tabindex],[onclick],summary';
+  function visible(el){
+    if (el.disabled) return false;
+    var r = el.getBoundingClientRect();
+    if (r.width < 4 || r.height < 4) return false;
+    var cs = window.getComputedStyle(el);
+    return cs.visibility !== 'hidden' && cs.display !== 'none';
+  }
+  function items(){
+    var all = document.querySelectorAll(SEL), out = [];
+    for (var i=0;i<all.length;i++){ if (all[i].getAttribute('tabindex')==='-1') continue; if (visible(all[i])) out.push(all[i]); }
+    return out;
+  }
+  var cur = null;
+  function setFocus(el){
+    if (cur) cur.className = (' '+cur.className+' ').replace(' tvfoco ',' ').replace(/^\s+|\s+$/g,'');
+    cur = el; if (!el) return;
+    el.className += ' tvfoco';
+    if (!el.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) el.setAttribute('tabindex','0');
+    try { el.focus({preventScroll:true}); } catch(e){ try{el.focus();}catch(e2){} }
+    var r = el.getBoundingClientRect(), h = window.innerHeight;
+    if (r.top < 60 || r.bottom > h - 60) window.scrollBy(0, r.top - h/2 + r.height/2);
+  }
+  function center(r){ return {x:r.left+r.width/2, y:r.top+r.height/2}; }
+  function move(dir){
+    var list = items(); if (!list.length) return;
+    if (!cur || list.indexOf(cur) < 0){ setFocus(list[0]); return; }
+    var a = cur.getBoundingClientRect(), ca = center(a), best = null, bd = 1e12;
+    for (var i=0;i<list.length;i++){
+      var el = list[i]; if (el === cur) continue;
+      var b = el.getBoundingClientRect(), cb = center(b), dx = cb.x-ca.x, dy = cb.y-ca.y, main, side;
+      if (dir==='R'){ if (b.left < a.right-4 && dx <= 4) continue; main=dx; side=dy; }
+      else if (dir==='L'){ if (b.right > a.left+4 && dx >= -4) continue; main=-dx; side=dy; }
+      else if (dir==='D'){ if (b.top < a.bottom-4 && dy <= 4) continue; main=dy; side=dx; }
+      else { if (b.bottom > a.top+4 && dy >= -4) continue; main=-dy; side=dx; }
+      if (main <= 0) continue;
+      var d = main + Math.abs(side)*2.5;
+      if (d < bd){ bd = d; best = el; }
+    }
+    if (best) setFocus(best);
+    else if (dir==='D') window.scrollBy(0, window.innerHeight*0.6);
+    else if (dir==='U') window.scrollBy(0, -window.innerHeight*0.6);
+  }
+  window.addEventListener('keydown', function(e){
+    if (e.defaultPrevented) return;
+    var t = e.target && e.target.tagName;
+    if (t==='INPUT' || t==='TEXTAREA' || t==='SELECT') { if (e.keyCode!==38 && e.keyCode!==40) return; }
+    var k = e.keyCode || e.which, dir = null;
+    if (k===37) dir='L'; else if (k===38) dir='U'; else if (k===39) dir='R'; else if (k===40) dir='D';
+    if (dir){ if (GAME) return; e.preventDefault(); move(dir); return; }
+    if ((k===13 || k===23 || k===66) && cur && (!GAME || document.activeElement===cur)){ e.preventDefault(); if (cur.tagName==='INPUT'){cur.focus();return;} cur.click(); }
+  }, false);
+  document.addEventListener('focusin', function(e){ var el=e.target; if (el && el!==cur && el.matches && el.matches(SEL)) setFocus(el); });
+  setTimeout(function(){ if (!cur && !GAME){ var l = items(); for (var i=0;i<l.length;i++){ var r=l[i].getBoundingClientRect(); if (r.top>=0 && r.top < window.innerHeight){ setFocus(l[i]); break; } } } }, 900);
+})();
 </script>
 </body>
 </html>

@@ -152,15 +152,15 @@ const GAMES = [
   {t:"El Carro Rosa de Cattleya", cat:"Aventura", g:"🚗", c:["#ff5fa8","#ffb86b"],
    d:"Maneja el carro rosa de Cattleya nivel por nivel hasta llegar al castillo en la playa.",
    l:"Para niñas y niños. Los papás pueden cambiar las voces del juego desde su propio celular.",
-   tags:["Niñas y niños","Celular","Voces propias"], f:"carro-rosa-cattleya.html"},
+   tags:["Niñas y niños","Celular","Voces propias"], f:"carro-rosa-cattleya.html", tv:"carro-rosa-cattleya-tv.html"},
   {t:"El Sastre de Grid · RPG", cat:"Rol 16 bits", g:"🧵", c:["#1b2a4a","#e07a3a"],
    d:"Videojuego de rol de 16 bits basado en la novela: recorre Barrios Altos, el Mercado de las Sombras y Barranco con Damián, «el Sastre».",
    l:"Jóvenes y adultos lectores de la saga. Funciona en celular y computadora.",
-   tags:["RPG","Basado en la novela","Celular y PC"], f:"https://neptaliagiphoyos.github.io/El-Sastre-del-Grid/", ext:true},
+   tags:["RPG","Basado en la novela","Celular y PC"], f:"https://neptaliagiphoyos.github.io/El-Sastre-del-Grid/", tv:"https://neptaliagiphoyos.github.io/El-Sastre-del-Grid/rpg-tv.html", ext:true},
   {t:"Damián: la noche de los techos", cat:"Plataformas 3D", g:"🏃", c:["#0f2a22","#c9a25a"],
    d:"Salta por los techos de Lima con Damián, del cerro San Cosme a Barrios Altos, esquivando los drones de Grid. Basado en la novela El Sastre de Grid.",
    l:"Jóvenes y adultos lectores de la saga. Funciona en celular (botones en pantalla) y computadora (flechas).",
-   tags:["Plataformas 3D","Basado en la novela","Celular y PC"], f:"https://neptaliagiphoyos.github.io/El-Sastre-del-Grid/juegos/la-noche-de-los-techos.html", ext:true},
+   tags:["Plataformas 3D","Basado en la novela","Celular y PC"], f:"https://neptaliagiphoyos.github.io/El-Sastre-del-Grid/juegos/la-noche-de-los-techos.html", tv:"https://neptaliagiphoyos.github.io/El-Sastre-del-Grid/juegos/la-noche-de-los-techos-tv.html", ext:true},
   {t:"LEGO en familia", cat:"Construir", g:"🧱", c:["#d8342b","#f5c431"],
    d:"Guía para armar carro, casa, avión, torre y barco con las piezas de casa, y un contador de piezas LEGO.",
    l:"Papá, hijo e hija juntos: cada uno tiene su trabajo en cada modelo. Versión para celular y para computadora.",
@@ -168,11 +168,13 @@ const GAMES = [
   {t:"Parking Challenge", cat:"Carreras", g:"🅿️", c:["#5b2bd6","#ff3d6e"],
    d:"Estaciona el auto deportivo en el lugar verde sin chocar. Seis niveles, cada uno más difícil que el anterior.",
    l:"Para toda la familia. Creado por <b>Pedro Miguel</b>, el más joven de los creadores de esta biblioteca. Se juega con flechas, W A S D o los botones en pantalla.",
-   tags:["Hecho por Pedro Miguel","6 niveles","Celular y PC"], f:"parking-challenge.html"}
+   tags:["Hecho por Pedro Miguel","6 niveles","Celular y PC"], f:"parking-challenge.html", tv:"parking-challenge-tv.html"}
 ];
 
 const $ = s => document.querySelector(s);
 const ready = new Set();
+if(location.protocol==="file:"){ready.has=function(){return true};}
+
 $("#yr").textContent = new Date().getFullYear();
 $("#nTotal").textContent = GAMES.length;
 
@@ -188,6 +190,7 @@ function render(){
         ${on ? "" : `<span class="soon">⏳ Muy pronto en la biblioteca</span>`}
         <div class="ver"><span>Juego</span>
           <a class="btn primary" href="${g.f}" target="_blank" rel="noopener" aria-disabled="${!on}">▶ Jugar</a>
+          ${g.tv ? `<a class="btn primary" href="${g.tv}">📺 TV</a>` : ""}
           ${g.ext || g.f.includes("/") ? "" : `<a class="btn" href="${g.f}" download aria-disabled="${!on}">⬇</a>`}</div>
       </div></article>`;
   }).join("") + `<div class="ghost"><span class="big">🎁</span><b>Próximo juego…</b>
@@ -245,6 +248,69 @@ document.addEventListener("click", e => {
   document.getElementById('don-close').onclick=function(){s.classList.remove('on')};
   s.addEventListener('click',function(e){if(e.target===s)s.classList.remove('on')});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')s.classList.remove('on')});
+})();
+</script>
+<script>/* Navegacion con control remoto (TV) - ES5 */
+(function(){
+  if (window.__tvnav) return; window.__tvnav = 1;
+  var GAME = !!window.__tvgame;
+  var st = document.createElement('style');
+  st.textContent = '.tvfoco{outline:6px solid #ffd400 !important;outline-offset:3px !important;box-shadow:0 0 0 10px rgba(0,0,0,.55) !important;position:relative;z-index:5}';
+  (document.head||document.documentElement).appendChild(st);
+  var SEL = 'a[href],button,input,select,textarea,[tabindex],[onclick],summary';
+  function visible(el){
+    if (el.disabled) return false;
+    var r = el.getBoundingClientRect();
+    if (r.width < 4 || r.height < 4) return false;
+    var cs = window.getComputedStyle(el);
+    return cs.visibility !== 'hidden' && cs.display !== 'none';
+  }
+  function items(){
+    var all = document.querySelectorAll(SEL), out = [];
+    for (var i=0;i<all.length;i++){ if (all[i].getAttribute('tabindex')==='-1') continue; if (visible(all[i])) out.push(all[i]); }
+    return out;
+  }
+  var cur = null;
+  function setFocus(el){
+    if (cur) cur.className = (' '+cur.className+' ').replace(' tvfoco ',' ').replace(/^\s+|\s+$/g,'');
+    cur = el; if (!el) return;
+    el.className += ' tvfoco';
+    if (!el.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) el.setAttribute('tabindex','0');
+    try { el.focus({preventScroll:true}); } catch(e){ try{el.focus();}catch(e2){} }
+    var r = el.getBoundingClientRect(), h = window.innerHeight;
+    if (r.top < 60 || r.bottom > h - 60) window.scrollBy(0, r.top - h/2 + r.height/2);
+  }
+  function center(r){ return {x:r.left+r.width/2, y:r.top+r.height/2}; }
+  function move(dir){
+    var list = items(); if (!list.length) return;
+    if (!cur || list.indexOf(cur) < 0){ setFocus(list[0]); return; }
+    var a = cur.getBoundingClientRect(), ca = center(a), best = null, bd = 1e12;
+    for (var i=0;i<list.length;i++){
+      var el = list[i]; if (el === cur) continue;
+      var b = el.getBoundingClientRect(), cb = center(b), dx = cb.x-ca.x, dy = cb.y-ca.y, main, side;
+      if (dir==='R'){ if (b.left < a.right-4 && dx <= 4) continue; main=dx; side=dy; }
+      else if (dir==='L'){ if (b.right > a.left+4 && dx >= -4) continue; main=-dx; side=dy; }
+      else if (dir==='D'){ if (b.top < a.bottom-4 && dy <= 4) continue; main=dy; side=dx; }
+      else { if (b.bottom > a.top+4 && dy >= -4) continue; main=-dy; side=dx; }
+      if (main <= 0) continue;
+      var d = main + Math.abs(side)*2.5;
+      if (d < bd){ bd = d; best = el; }
+    }
+    if (best) setFocus(best);
+    else if (dir==='D') window.scrollBy(0, window.innerHeight*0.6);
+    else if (dir==='U') window.scrollBy(0, -window.innerHeight*0.6);
+  }
+  window.addEventListener('keydown', function(e){
+    if (e.defaultPrevented) return;
+    var t = e.target && e.target.tagName;
+    if (t==='INPUT' || t==='TEXTAREA' || t==='SELECT') { if (e.keyCode!==38 && e.keyCode!==40) return; }
+    var k = e.keyCode || e.which, dir = null;
+    if (k===37) dir='L'; else if (k===38) dir='U'; else if (k===39) dir='R'; else if (k===40) dir='D';
+    if (dir){ if (GAME) return; e.preventDefault(); move(dir); return; }
+    if ((k===13 || k===23 || k===66) && cur && (!GAME || document.activeElement===cur)){ e.preventDefault(); if (cur.tagName==='INPUT'){cur.focus();return;} cur.click(); }
+  }, false);
+  document.addEventListener('focusin', function(e){ var el=e.target; if (el && el!==cur && el.matches && el.matches(SEL)) setFocus(el); });
+  setTimeout(function(){ if (!cur && !GAME){ var l = items(); for (var i=0;i<l.length;i++){ var r=l[i].getBoundingClientRect(); if (r.top>=0 && r.top < window.innerHeight){ setFocus(l[i]); break; } } } }, 900);
 })();
 </script>
 </body>
