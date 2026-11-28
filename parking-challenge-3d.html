@@ -27,6 +27,7 @@ button{font:inherit;cursor:pointer}
 .hudrow > *{pointer-events:auto}
 .small{border:1px solid #ffffff55;background:#0a1030b8;color:#fff;border-radius:12px;padding:0 11px;font-weight:800;min-height:44px;min-width:44px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .small.on{background:#2f55c9}
+@media(max-width:380px){.small{min-width:40px;padding:0 8px}.btns{gap:4px}}
 .btns{display:flex;gap:6px}
 .stats{display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:#e6eeff;text-shadow:0 1px 3px #000;padding:0 2px}
 .title{font-weight:900;letter-spacing:1px;font-size:clamp(14px,4.2vw,20px);text-shadow:0 2px 6px #000;text-align:center;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -88,7 +89,7 @@ body.playing #nav-volver{display:none!important}
   <div class="hudrow">
    <button class="small" id="back" aria-label="Menú">↩</button>
    <div class="title"></div>
-   <div class="btns"><button class="small" id="cam" aria-label="Cambiar cámara">🎥</button><button class="small" id="calib" aria-label="Calibrar">🎯</button><button class="small" id="ctlBtn" aria-label="Control">⚙️</button><button class="small" id="mute" aria-label="Sonido">🔊</button><button class="small" id="restart" aria-label="Reiniciar nivel">↻</button></div>
+   <div class="btns"><button class="small" id="cam" aria-label="Cambiar cámara">🎥</button><button class="small" id="calib" aria-label="Calibrar">🎯</button><button class="small" id="ctlBtn" aria-label="Control">⚙️</button><button class="small" id="music" aria-label="Música">🎵</button><button class="small" id="mute" aria-label="Efectos de sonido">🔊</button><button class="small" id="restart" aria-label="Reiniciar nivel">↻</button></div>
   </div>
   <div class="stats"><span id="levelLabel">Nivel 1 de 6</span><span id="hud">⏱ 0:00 · 💥 0</span></div>
  </div>
@@ -145,7 +146,7 @@ const PAVE={x:16,y:12,w:328,h:496};
 function spotRect(g){return g.o==='v'?{x:g.x-19,y:g.y-31,w:38,h:62}:{x:g.x-31,y:g.y-19,w:62,h:38}}
 
 // ---------- guardado ----------
-let save={best:{},muted:false,ctl:'tilt',sens:1,inv:0,cam:'follow'};
+let save={best:{},muted:false,musicOff:false,ctl:'tilt',sens:1,inv:0,cam:'follow'};
 try{const s=JSON.parse(localStorage.getItem('parkingChallenge3d')||'null');if(s&&typeof s==='object')save=Object.assign(save,s)}catch(e){}
 try{const s2=JSON.parse(localStorage.getItem('parkingChallenge')||'null');if(s2&&s2.best)for(const k in s2.best)if(!save.best[k])save.best[k]=s2.best[k]}catch(e){}
 function store(){try{localStorage.setItem('parkingChallenge3d',JSON.stringify(save))}catch(e){}}
@@ -153,26 +154,60 @@ function unlocked(i){return i===0||!!save.best[i-1]}
 function totalStars(){let t=0;for(let i=0;i<N;i++)t+=(save.best[i]&&save.best[i].stars)||0;return t}
 
 // ---------- sonido (sintetizado) ----------
-let AC=null,engOsc=null,engOsc2=null,engGain=null,engFilter=null;
-function audio(){if(save.muted)return null;try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
-function tone(f,dur,type,vol,delay,slideTo){const a=audio();if(!a)return;const t=a.currentTime+(delay||0),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);g.gain.setValueAtTime(vol||.15,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02)}
-function noise(dur,vol,freq,freqTo){const a=audio();if(!a)return;const t=a.currentTime,len=Math.floor(a.sampleRate*dur),b=a.createBuffer(1,len,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='lowpass';f.frequency.setValueAtTime(freq,t);if(freqTo)f.frequency.exponentialRampToValueAtTime(freqTo,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(f);f.connect(g);g.connect(a.destination);s.start(t)}
+// Todo pasa por un limitador para no saturar el parlante del celular,
+// y se evitan graves muy profundos (< 90 Hz) que los parlantes chicos distorsionan.
+let AC=null,BUS=null,SFX=null,MUS=null,engOsc=null,engOsc2=null,engGain=null,engFilter=null;
+function audio(){if(save.muted&&save.musicOff)return null;try{if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();
+ const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=85;
+ const comp=AC.createDynamicsCompressor();comp.threshold.value=-20;comp.knee.value=6;comp.ratio.value=14;comp.attack.value=.002;comp.release.value=.18;
+ BUS=AC.createGain();BUS.gain.value=.55;hp.connect(comp);comp.connect(BUS);BUS.connect(AC.destination);
+ SFX=AC.createGain();SFX.gain.value=save.muted?0:.6;SFX.connect(hp);
+ MUS=AC.createGain();MUS.gain.value=save.musicOff?0:.32;MUS.connect(hp);}
+ if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
+function sfxOn(){return !save.muted&&audio()}
+function tone(f,dur,type,vol,delay,slideTo){const a=sfxOn();if(!a)return;const t=a.currentTime+(delay||0),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime((vol||.15)*.6,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(SFX);o.start(t);o.stop(t+dur+.02)}
+function noise(dur,vol,freq,freqTo){const a=sfxOn();if(!a)return;const t=a.currentTime,len=Math.floor(a.sampleRate*dur),b=a.createBuffer(1,len,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='lowpass';f.frequency.setValueAtTime(freq,t);if(freqTo)f.frequency.exponentialRampToValueAtTime(Math.max(150,freqTo),t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol*.5,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(f);f.connect(g);g.connect(SFX);s.start(t)}
 const sfx={
- click(){tone(660,.07,'square',.08)},
- crash(){noise(.25,.5,900,120);tone(110,.2,'triangle',.25,0,55)},
- boom(){noise(.9,.8,2200,60);tone(70,.7,'sawtooth',.3,0,30)},
- win(){[523,659,784,1047].forEach((f,i)=>tone(f,.22,'square',.12,i*.11));tone(1319,.5,'triangle',.14,.46)},
- star(i){tone(880+i*220,.15,'triangle',.15)},
- locked(){tone(200,.15,'square',.1,0,150)},
- beep(){tone(990,.12,'sine',.12)},go(){tone(1320,.25,'sine',.14)}
+ click(){tone(660,.07,'square',.06)},
+ crash(){noise(.22,.35,1400,300);tone(220,.15,'triangle',.18,0,140)},
+ boom(){noise(.8,.5,2400,200);tone(160,.5,'triangle',.22,0,90)},
+ win(){[523,659,784,1047].forEach((f,i)=>tone(f,.22,'square',.09,i*.11));tone(1319,.5,'triangle',.12,.46)},
+ star(i){tone(880+i*220,.15,'triangle',.12)},
+ locked(){tone(220,.15,'square',.08,0,170)},
+ beep(){tone(990,.12,'sine',.1)},go(){tone(1320,.25,'sine',.12)}
 };
 function engine(rpm){
  if(save.muted||!game.classList.contains('active')||rpm<0){if(engGain&&AC)engGain.gain.setTargetAtTime(0,AC.currentTime,.05);return}
- const a=AC;if(!a)return;
- if(!engOsc){engOsc=a.createOscillator();engOsc2=a.createOscillator();engFilter=a.createBiquadFilter();engGain=a.createGain();engOsc.type='sawtooth';engOsc2.type='square';engFilter.type='lowpass';engFilter.frequency.value=380;engGain.gain.value=0;engOsc.connect(engFilter);engOsc2.connect(engFilter);engFilter.connect(engGain);engGain.connect(a.destination);engOsc.start();engOsc2.start()}
- const t=a.currentTime,f=40+rpm*55;engOsc.frequency.setTargetAtTime(f,t,.1);engOsc2.frequency.setTargetAtTime(f*.5,t,.1);engFilter.frequency.setTargetAtTime(300+rpm*500,t,.1);engGain.gain.setTargetAtTime(.03+rpm*.05,t,.1);
+ const a=AC;if(!a||!SFX)return;
+ if(!engOsc){engOsc=a.createOscillator();engOsc2=a.createOscillator();engFilter=a.createBiquadFilter();engGain=a.createGain();engOsc.type='triangle';engOsc2.type='sawtooth';engFilter.type='lowpass';engFilter.frequency.value=600;engGain.gain.value=0;const g2=a.createGain();g2.gain.value=.25;engOsc.connect(engFilter);engOsc2.connect(g2);g2.connect(engFilter);engFilter.connect(engGain);engGain.connect(SFX);engOsc.start();engOsc2.start()}
+ const t=a.currentTime,f=95+rpm*90;engOsc.frequency.setTargetAtTime(f,t,.1);engOsc2.frequency.setTargetAtTime(f*1.5,t,.1);engFilter.frequency.setTargetAtTime(500+rpm*700,t,.1);engGain.gain.setTargetAtTime(.025+rpm*.04,t,.1);
 }
-function setMute(m){save.muted=m;store();el('mute').textContent=m?'🔇':'🔊';if(m&&engGain&&AC)engGain.gain.setTargetAtTime(0,AC.currentTime,.03)}
+// ---------- música retro tipo 8 bits (compuesta aquí, en bucle) ----------
+const NOTE=n=>440*Math.pow(2,(n-69)/12);
+// melodía alegre en Do mayor: 4 compases × 16 pasos (0 = silencio)
+const MEL=[72,0,76,0,79,0,76,0,74,0,72,0,71,0,74,0, 69,0,72,0,76,0,72,0,71,0,69,0,67,0,0,0,
+           65,0,69,0,72,0,69,0,67,0,65,0,64,0,67,0, 67,0,71,0,74,0,77,0,76,0,74,0,72,0,0,0,
+           72,74,76,0,79,0,79,0,81,0,79,0,76,0,72,0, 69,71,72,0,76,0,76,0,74,0,72,0,69,0,0,0,
+           65,67,69,0,72,0,72,0,71,0,69,0,67,0,65,0, 67,0,71,0,74,0,71,0,72,0,0,0,72,0,0,0];
+const BASS=[48,55,52,55, 45,52,48,52, 41,48,45,48, 43,50,47,50, 48,55,52,55, 45,52,48,52, 41,48,45,48, 43,50,47,43];
+let musT=0,musStep=0,musTimer=null,pulse=null;
+function musicTick(){
+ const a=AC;if(!a||!MUS)return;const spb=60/138/4;
+ if(!pulse){const re=new Float32Array(16),im=new Float32Array(16);for(let k=1;k<16;k++){re[k]=0;im[k]=2/(k*Math.PI)*Math.sin(k*Math.PI*.25)}pulse=a.createPeriodicWave(re,im)}
+ if(musT<a.currentTime)musT=a.currentTime+.05;
+ while(musT<a.currentTime+.25){
+  const i=musStep%128,t=musT;
+  const m=MEL[i];if(m){const o=a.createOscillator(),g=a.createGain();o.setPeriodicWave(pulse);o.frequency.value=NOTE(m);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.01);g.gain.exponentialRampToValueAtTime(.01,t+spb*1.8);o.connect(g);g.connect(MUS);o.start(t);o.stop(t+spb*1.9)}
+  if(i%4===0){const b=BASS[(i/4)|0],o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=NOTE(b+12);g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.02,t+spb*3.6);o.connect(g);g.connect(MUS);o.start(t);o.stop(t+spb*3.8)}
+  if(i%2===0){const len=Math.floor(a.sampleRate*.04),bf=a.createBuffer(1,len,a.sampleRate),d=bf.getChannelData(0);for(let k=0;k<len;k++)d[k]=(Math.random()*2-1)*(1-k/len);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=bf;f.type='highpass';f.frequency.value=6000;g.gain.value=i%8===4?.12:.05;s.connect(f);f.connect(g);g.connect(MUS);s.start(t)}
+  musT+=spb;musStep++;
+ }
+}
+function musicStart(){if(save.musicOff||musTimer)return;if(!audio())return;musTimer=setInterval(musicTick,90);musicTick()}
+function musicStop(){if(musTimer){clearInterval(musTimer);musTimer=null}}
+function setMusic(off){save.musicOff=off;store();el('music').classList.toggle('off',off);el('music').style.opacity=off?.5:1;if(off){if(MUS&&AC)MUS.gain.setTargetAtTime(0,AC.currentTime,.05);musicStop()}else{audio();if(MUS&&AC)MUS.gain.setTargetAtTime(.32,AC.currentTime,.05);musicStart()}}
+function setMute(m){save.muted=m;store();el('mute').textContent=m?'🔇':'🔊';if(SFX&&AC)SFX.gain.setTargetAtTime(m?0:.6,AC.currentTime,.03)}
+
 
 // ---------- geometría (idéntica a la 2D) ----------
 function corners(x,y,a){const c=Math.cos(a),s=Math.sin(a),p=[];for(const [l,w] of [[CAR_L,CAR_W],[CAR_L,-CAR_W],[-CAR_L,-CAR_W],[-CAR_L,CAR_W]])p.push([x+c*l-s*w,y+s*l+c*w]);return p}
@@ -606,7 +641,7 @@ function begin(i){
  if(save.ctl==='tilt'){setCtl('tilt');ctl.warned=false;enableTilt()}
  try{if(navigator.wakeLock&&!wake)navigator.wakeLock.request('screen').then(w=>{wake=w;w.addEventListener('release',()=>wake=null)}).catch(()=>{})}catch(e){}
  try{const de=document.documentElement;if(save.ctl==='tilt'&&de.requestFullscreen&&!document.fullscreenElement&&matchMedia('(pointer:coarse)').matches)de.requestFullscreen({navigationUI:'hide'}).then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('portrait').catch(()=>{})).catch(()=>{})}catch(e){}
- startAt(i);
+ startAt(i);musicStart();
 }
 el('play').addEventListener('click',()=>{sfx.click();let i=0;while(i<N-1&&save.best[i])i++;begin(save.best[N-1]?0:i)});
 el('levelsBtn').addEventListener('click',()=>{sfx.click();openPicker()});
@@ -615,6 +650,7 @@ el('exit').addEventListener('click',()=>{state='bye';el('dialogTitle').textConte
 el('back').addEventListener('click',()=>{sfx.click();showMenu()});
 el('restart').addEventListener('click',()=>{sfx.click();loadLevel()});
 el('mute').addEventListener('click',()=>{setMute(!save.muted);if(!save.muted)sfx.click()});
+el('music').addEventListener('click',()=>setMusic(!save.musicOff));
 el('cam').addEventListener('click',()=>{sfx.click();setCam(camMode==='follow'?'full':'follow')});
 el('calib').addEventListener('click',()=>calibrate(false));
 el('again').addEventListener('click',()=>{sfx.click();loadLevel()});
@@ -640,7 +676,7 @@ window.addEventListener('keydown',e=>{
  if(menu.classList.contains('active')){if(k==='enter'||k===' '){e.preventDefault();el('play').click()}else if(k==='n'||k==='arrowdown'){e.preventDefault();openPicker()}return}
  if(el('overlay').classList.contains('show')){if(k==='enter'||k===' '){e.preventDefault();el('continue').click()}else if(k==='r'&&state==='won'){e.preventDefault();el('again').click()}else if(arrows.includes(k))e.preventDefault();return}
  if(arrows.includes(k)||k===' ')e.preventDefault();
- if(k==='r'){loadLevel();return}if(k==='m'){setMute(!save.muted);return}if(k==='c'){setCam(camMode==='follow'?'full':'follow');return}
+ if(k==='r'){loadLevel();return}if(k==='m'){setMute(!save.muted);return}if(k==='b'){setMusic(!save.musicOff);return}if(k==='c'){setCam(camMode==='follow'?'full':'follow');return}
  keys[k]=true;audio();
 });
 window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
@@ -649,10 +685,10 @@ document.querySelectorAll('[data-dir]').forEach(b=>{
  const down=e=>{e.preventDefault();audio();pads.set(e.pointerId,b.dataset.dir);b.classList.add('on');try{b.setPointerCapture(e.pointerId)}catch(_){}},
  up=e=>{e.preventDefault();pads.delete(e.pointerId);if(![...pads.values()].includes(b.dataset.dir))b.classList.remove('on')};
  b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('lostpointercapture',up);b.addEventListener('contextmenu',e=>e.preventDefault())});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)engine(-1)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){engine(-1);musicStop()}else if(game.classList.contains('active'))musicStart()});
 
 // arranque
-setMute(!!save.muted);setCtl(save.ctl==='buttons'?'buttons':'tilt');el('cam').classList.toggle('on',camMode==='follow');updateMenuBadge();
+setMute(!!save.muted);el('music').style.opacity=save.musicOff?.5:1;setCtl(save.ctl==='buttons'?'buttons':'tilt');el('cam').classList.toggle('on',camMode==='follow');updateMenuBadge();
 // si el equipo no tiene sensor (PC), quedan los botones/teclado automáticamente
 if(!('DeviceOrientationEvent' in window)||!matchMedia('(pointer:coarse)').matches){if(save.ctl==='tilt'&&!matchMedia('(pointer:coarse)').matches)setCtl('buttons',true)}
 el('loading').remove();
